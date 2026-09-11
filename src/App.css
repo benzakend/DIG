@@ -37,36 +37,47 @@ body {
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 950px;
+  max-width: 1050px;
   z-index: 1002;
-  background: #fff;
-  box-shadow: 0 2px 12px #0001;
-  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  border-bottom: 1.5px solid rgba(197, 155, 39, 0.35);
+  border-left: 1px solid rgba(197, 155, 39, 0.15);
+  border-right: 1px solid rgba(197, 155, 39, 0.15);
+  box-shadow: 0 4px 20px rgba(7, 18, 36, 0.06);
+  border-radius: 0 0 16px 16px;
+  padding: 10px 24px;
   box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
   .sticky-nav {
     max-width: 100%;
-    padding: 8px 20px;
+    padding: 8px 16px;
+    border-radius: 0;
+    left: 0;
+    transform: none;
+    border-left: none;
+    border-right: none;
   }
 }
 
 .banner-container {
-  margin-top: 100px; /* חזרה לערך הקודם */
-  margin-bottom: 24px;
-  max-width: 950px;
+  margin-top: 80px;
+  margin-bottom: 32px;
+  max-width: 1050px;
   width: 100%;
   margin-left: auto;
   margin-right: auto;
   box-sizing: border-box;
-  padding: 0 20px;
+  padding: 0;
 }
 
 @media (max-width: 768px) {
   .banner-container {
-    margin-top: 85px; /* חזרה לערך הקודם */
-    padding: 0 20px;
+    margin-top: 75px;
+    width: calc(100% - 32px);
+    padding: 0;
   }
 }
 
@@ -74,8 +85,8 @@ body {
   width: 100%;
   display: block;
   margin: 0 auto;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px #0001;
+  border-radius: 16px;
+  box-shadow: 0 15px 40px rgba(7, 18, 36, 0.15);
   max-width: 100%;
 }
 
@@ -741,19 +752,19 @@ button.slick-arrow:not(.custom-arrow) {
 }
 
 .site-center-wrapper {
-  max-width: 950px;
+  max-width: 1050px;
   width: 100%;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: stretch;
   box-sizing: border-box;
-  padding: 70px 20px 0 20px;
+  padding: 0 0 40px 0;
 }
 
 @media (max-width: 768px) {
   .site-center-wrapper {
-    padding: 60px 20px 0 20px;
+    padding: 0 16px 40px 16px;
   }
 }
 
@@ -764,7 +775,7 @@ button.slick-arrow:not(.custom-arrow) {
 .about-section,
 .contact-section,
 .logos-section {
-  max-width: 950px;
+  max-width: 1050px;
   width: 100%;
   margin: 24px auto 0 auto;
   box-sizing: border-box;
@@ -1384,9 +1395,9 @@ section[id], div[id] {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  max-width: 950px;
+  max-width: 1050px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0;
   box-sizing: border-box;
 }
 
