@@ -45,12 +45,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: >
-      sh -c "mkdir -p /tmp/media/products &&
-             cp -rn /app/media/products/* /tmp/media/products/ 2>/dev/null || true &&
-             python manage.py migrate --noinput &&
-             (python -c "import os, django; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'shop_project.settings'); django.setup(); from products.models import Product; exit(0 if Product.objects.exists() else 1)" || python seed_dig_products.py) &&
-             python manage.py runserver 0.0.0.0:8000"
+    command: ["sh", "/app/entrypoint.sh"]
 
   db:
     image: postgres:16-alpine
