@@ -1,11 +1,13 @@
 {
   "mcpServers": {
     "dig-products": {
-      "command": "/Users/danielbenzaken/workspace/DIG/shop/shop/.venv/bin/python",
+      "command": "python3",
       "args": [
         "/Users/danielbenzaken/workspace/DIG/shop/scripts/dig_products_mcp.py"
       ],
       "env": {
+        "DIG_API_URL": "https://dig-shop.duckdns.org",
+        "DIG_API_TOKEN": "91d0d0e76d92f16d5928b0dc199c088bd90d1efe",
         "PYTHONUNBUFFERED": "1"
       }
     }
