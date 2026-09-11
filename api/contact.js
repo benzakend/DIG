@@ -4,45 +4,45 @@ import nodemailer from 'nodemailer';
 const app = express();
 app.use(express.json());
 
-// בדיקה שמשתני הסביבה קיימים
-if (!process.env.MAIL_USER) {
-  console.error('Missing required environment variable: MAIL_USER');
-  process.exit(1);
-}
-
 // הגדרת transporter עם תמיכה ב-App Password או OAuth2
-let transporter;
+let transporter = null;
 
-if (process.env.MAIL_OAUTH_TOKEN) {
-  // שימוש ב-OAuth2 Token (הכי בטוח)
-  transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      type: 'OAuth2',
-      user: process.env.MAIL_USER,
-      clientId: process.env.MAIL_CLIENT_ID,
-      clientSecret: process.env.MAIL_CLIENT_SECRET,
-      refreshToken: process.env.MAIL_REFRESH_TOKEN,
-      accessToken: process.env.MAIL_OAUTH_TOKEN
-    }
-  });
-} else if (process.env.MAIL_PASS) {
-  // שימוש ב-App Password
-  transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.MAIL_USER,
-      pass: process.env.MAIL_PASS
-    }
-  });
+if (process.env.MAIL_USER && (process.env.MAIL_PASS || process.env.MAIL_OAUTH_TOKEN)) {
+  if (process.env.MAIL_OAUTH_TOKEN) {
+    // שימוש ב-OAuth2 Token (הכי בטוח)
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        type: 'OAuth2',
+        user: process.env.MAIL_USER,
+        clientId: process.env.MAIL_CLIENT_ID,
+        clientSecret: process.env.MAIL_CLIENT_SECRET,
+        refreshToken: process.env.MAIL_REFRESH_TOKEN,
+        accessToken: process.env.MAIL_OAUTH_TOKEN
+      }
+    });
+  } else {
+    // שימוש ב-App Password
+    transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS
+      }
+    });
+  }
 } else {
-  console.error('Missing authentication: Either MAIL_PASS (App Password) or MAIL_OAUTH_TOKEN required');
-  process.exit(1);
+  console.warn('Notice: MAIL_USER or MAIL_PASS not configured. Contact inquiries will be logged to console.');
 }
 
 app.post('/api/contact', async (req, res) => {
   const { name, email, phone, message } = req.body;
   
+  if (!transporter) {
+    console.log('Contact inquiry received (mail not configured):', { name, email, phone, message });
+    return res.status(200).json({ success: true, message: 'ההודעה התקבלה בהצלחה' });
+  }
+
   try {
     await transporter.sendMail({
       from: process.env.MAIL_USER,

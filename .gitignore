@@ -12,6 +12,7 @@ dist-ssr/
 .env.local
 .env.*.local
 *.local
+docker-compose.override.yml
 
 # Python / Virtual Environments
 .venv/
