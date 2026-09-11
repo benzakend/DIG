@@ -1,35 +1,20 @@
-shaubi-brothers.co.il {
+dig-shop.duckdns.org {
     handle /api/contact* {
         reverse_proxy api:3001
     }
-    handle /api/products* {
+    handle /api/* {
         reverse_proxy shop:8000
     }
-    handle /api/categories* {
+    handle /media/* {
         reverse_proxy shop:8000
     }
-    handle /api/subcategories* {
+    handle /static/* {
         reverse_proxy shop:8000
     }
-    handle /api/cart* {
-        reverse_proxy shop:8000
-    }
-    handle /api/orders* {
-        reverse_proxy shop:8000
-    }
-    handle /api/shipping* {
-        reverse_proxy shop:8000
-    }
-    handle /media* {
-        reverse_proxy shop:8000
-    }
-    handle /static* {
-        reverse_proxy shop:8000
-    }
-    handle /admin* {
+    handle /admin/* {
         reverse_proxy shop:8000
     }
     handle /* {
         reverse_proxy app:80
     }
-} 
+}

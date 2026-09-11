@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: shaubi-app
+    container_name: dig-app
     restart: always
     expose:
       - 80
@@ -13,7 +13,7 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    container_name: shaubi-api
+    container_name: dig-api
     restart: always
     environment:
       - MAIL_USER=${MAIL_USER}
@@ -28,14 +28,14 @@ services:
     build:
       context: ./shop
       dockerfile: Dockerfile
-    container_name: shaubi-shop
+    container_name: dig-shop
     restart: always
     environment:
       - DEBUG=False
       - DOCKER_ENV=True
-      - POSTGRES_DB=${POSTGRES_DB:-shaubi}
-      - POSTGRES_USER=${POSTGRES_USER:-shaubi}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-dig}
+      - POSTGRES_USER=${POSTGRES_USER:-dig}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dig_luxury_secret_2026}
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
     volumes:
@@ -45,67 +45,34 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    command: >
+      sh -c "mkdir -p /tmp/media/products &&
+             cp -rn /app/media/products/* /tmp/media/products/ 2>/dev/null || true &&
+             python manage.py migrate --noinput &&
+             (python -c 'import django; django.setup(); from products.models import Product; exit(0 if Product.objects.exists() else 1)' || python seed_dig_products.py) &&
+             python manage.py runserver 0.0.0.0:8000"
 
   db:
     image: postgres:16-alpine
-    container_name: shaubi-postgres
+    container_name: dig-postgres
     restart: always
     environment:
-      - POSTGRES_DB=${POSTGRES_DB:-shaubi}
-      - POSTGRES_USER=${POSTGRES_USER:-shaubi}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB:-dig}
+      - POSTGRES_USER=${POSTGRES_USER:-dig}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-dig_luxury_secret_2026}
     volumes:
       - db_data:/var/lib/postgresql/data
     expose:
       - 5432
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
-      interval: 10s
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
       timeout: 5s
       retries: 5
 
-  pgadmin:
-    image: dpage/pgadmin4:8
-    container_name: shaubi-pgadmin
-    restart: always
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
-    ports:
-      - "5050:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      - db
-
-  backup:
-    image: postgres:16-alpine
-    container_name: shaubi-backup
-    restart: unless-stopped
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB:-shaubi}
-      - POSTGRES_USER=${POSTGRES_USER:-shaubi}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
-      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
-      - S3_BUCKET=${S3_BUCKET:-shaubi-lending-database-bk}
-    volumes:
-      - ./scripts:/scripts
-      - backup_data:/backups
-      - shop_media:/tmp/media
-      - /home/ubuntu/.aws:/root/.aws:ro
-    depends_on:
-      db:
-        condition: service_healthy
-    command: sh -c "apk add --no-cache aws-cli && chmod +x /scripts/backup.sh && /scripts/backup.sh"
-    profiles:
-      - backup
-
   caddy:
     image: caddy:2
-    container_name: caddy
+    container_name: dig-caddy
     restart: always
     ports:
       - "80:80"
@@ -125,6 +92,3 @@ volumes:
   caddy_config:
   shop_media: 
   db_data:
-  pgadmin_data:
-  backup_data:
-

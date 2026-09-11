@@ -54,7 +54,7 @@ function Carousel({ id }) {
   // בחירת URL לפי סביבה
   const apiUrl = import.meta.env.DEV 
     ? 'http://localhost:8000' 
-    : 'https://shaubi-brothers.co.il';
+    : '';
 
   useEffect(() => {
     const fetchProducts = async () => {

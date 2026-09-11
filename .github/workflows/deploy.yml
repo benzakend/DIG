@@ -1,0 +1,31 @@
+name: Deploy DIG to Production
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Remote Server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: 52.29.185.134
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -e
+            echo "🚀 Starting automated deployment for DIG..."
+            if [ ! -d "/home/ubuntu/DIG" ]; then
+              git clone https://github.com/benzakend/DIG.git /home/ubuntu/DIG
+            fi
+            cd /home/ubuntu/DIG
+            git fetch origin main
+            git reset --hard origin/main
+            docker compose down --remove-orphans || true
+            docker compose up -d --build
+            echo "✅ Deployment completed successfully!"

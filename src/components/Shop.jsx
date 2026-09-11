@@ -26,7 +26,7 @@ function Shop() {
   // בחירת URL לפי סביבה
   const apiUrl = import.meta.env.DEV 
     ? 'http://localhost:8000' 
-    : 'https://shaubi-brothers.co.il';
+    : '';
 
   // Fetch categories once on mount
   useEffect(() => {

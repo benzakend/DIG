@@ -184,7 +184,13 @@ SESSION_COOKIE_SECURE = not DEBUG  # Secure cookies in production
 SESSION_SAVE_EVERY_REQUEST = True
 
 # CSRF settings - disable for API endpoints
-CSRF_TRUSTED_ORIGINS = ['http://localhost:5173', 'http://localhost:5174', 'https://shaubi-brothers.co.il']
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'https://dig-shop.duckdns.org',
+    'http://dig-shop.duckdns.org',
+    'https://shaubi-brothers.co.il'
+]
 CSRF_EXEMPT_URLS = [
     r'^/api/',
 ]

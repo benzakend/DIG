@@ -10,7 +10,7 @@ function Header() {
   
   // Constants
   const SUBMENU_DELAY = 250;
-  const API_URL = import.meta.env.DEV ? 'http://localhost:8000' : 'https://shaubi-brothers.co.il';
+  const API_URL = import.meta.env.DEV ? 'http://localhost:8000' : '';
   const [categories, setCategories] = useState([]);
   const [subCategories, setSubCategories] = useState([]);
   const [isMobileProductsOpen, setIsMobileProductsOpen] = useState(false);

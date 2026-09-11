@@ -13,7 +13,7 @@ function ProductDetail() {
   // בחירת URL לפי סביבה
   const apiUrl = import.meta.env.DEV 
     ? `http://localhost:8000/api/products/${id}/` 
-    : `https://shaubi-brothers.co.il/api/products/${id}/`;
+    : `/api/products/${id}/`;
 
   useEffect(() => {
     fetchProduct();

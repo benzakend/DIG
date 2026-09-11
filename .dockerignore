@@ -1,0 +1,12 @@
+node_modules
+.venv
+venv
+.git
+.gitignore
+.DS_Store
+dist
+shop/staticfiles
+*.log
+.cursor
+.agents
+session.txt
