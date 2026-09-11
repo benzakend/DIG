@@ -20,9 +20,35 @@ python -c "
 import os, django
 django.setup()
 from django.contrib.auth import get_user_model
+from rest_framework.authtoken.models import Token
+
 User = get_user_model()
-if not User.objects.filter(username='admin').exists():
-    User.objects.create_superuser('admin', 'admin@example.com', 'admin')
+admin_user, created = User.objects.get_or_create(
+    username='admin',
+    defaults={'email': 'admin@dig-shop.duckdns.org', 'is_staff': True, 'is_superuser': True}
+)
+if created:
+    admin_user.set_password('admin')
+    admin_user.save()
+
+# MCP Agent user with full privileges
+mcp_user, created = User.objects.get_or_create(
+    username='mcp_agent',
+    defaults={'email': 'mcp@dig-shop.duckdns.org', 'is_staff': True, 'is_superuser': True}
+)
+if created:
+    mcp_user.set_password('DigMcp2026!LuxuryAgentSecure')
+    mcp_user.save()
+else:
+    mcp_user.is_staff = True
+    mcp_user.is_superuser = True
+    mcp_user.save()
+
+token, _ = Token.objects.get_or_create(user=mcp_user)
+print('========================================')
+print('MCP_AUTH_USER: mcp_agent')
+print('MCP_AUTH_TOKEN:', token.key)
+print('========================================')
 " || true
 
 exec python manage.py runserver 0.0.0.0:8000

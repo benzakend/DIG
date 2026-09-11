@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'rest_framework.authtoken',
     'products',
 ]
 
@@ -151,7 +152,8 @@ CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:5174", 
-    "https://shaubi-brothers.co.il"
+    "https://shaubi-brothers.co.il",
+    "https://dig-shop.duckdns.org"
 ]
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = [
@@ -168,6 +170,11 @@ CORS_ALLOW_HEADERS = [
 
 # REST Framework settings
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],

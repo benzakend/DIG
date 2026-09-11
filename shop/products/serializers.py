@@ -17,12 +17,13 @@ class SubCategorySerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     category_name = serializers.CharField(source='category.name', read_only=True)
     sub_category_name = serializers.CharField(source='sub_category.name', read_only=True)
-    image_url = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField(read_only=True)
+    image = serializers.CharField(required=False, allow_blank=True, write_only=True)
 
     class Meta:
         model = Product
         fields = [
-            'id', 'name', 'description', 'image_url', 'category', 
+            'id', 'name', 'description', 'price', 'image', 'image_url', 'category', 
             'category_name', 'sub_category', 'sub_category_name', 'is_active', 'featured', 
             'show_in_gallery', 'sku', 'weight', 'dimensions', 
             'created_at', 'updated_at'
@@ -30,17 +31,22 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_image_url(self, obj):
         if obj.image:
-            request = self.context.get('request')
-            if request and not settings.DEBUG:
-                # In production, always use HTTPS
-                return f"https://shaubi-brothers.co.il{obj.image.url}"
-            elif request:
-                # In development, use request context
-                return request.build_absolute_uri(obj.image.url)
-            else:
-                # Fallback for when no request context is available
-                if settings.DEBUG:
-                    return f"http://localhost:8000{obj.image.url}"
-                else:
-                    return f"https://shaubi-brothers.co.il{obj.image.url}"
-        return None 
+            return obj.image.url
+        return None
+
+    def create(self, validated_data):
+        image_data = validated_data.pop('image', None)
+        if image_data:
+            clean_name = image_data.strip()
+            if not clean_name.startswith('products/'):
+                clean_name = f"products/{clean_name}"
+            validated_data['image'] = clean_name
+        else:
+            validated_data['image'] = "products/dig_groom_vip_box.jpg"
+
+        if not validated_data.get('sku'):
+            import random
+            cat_id = validated_data.get('category').id if validated_data.get('category') else 0
+            validated_data['sku'] = f"DIG-{cat_id}-{random.randint(1000, 9999)}"
+
+        return super().create(validated_data) 

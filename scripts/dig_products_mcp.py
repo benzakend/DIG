@@ -10,30 +10,87 @@ Standard Model Context Protocol (MCP) server providing AI agents with tools to:
 - list_categories: browse store categories and subcategories
 
 Protocol: JSON-RPC 2.0 over Stdio
+Modes:
+1. Remote HTTP API Mode (when DIG_API_URL and DIG_API_TOKEN are configured, or outside Django environment)
+2. Django ORM Mode (when running directly in Django environment)
 """
 
 import sys
 import os
 import json
 import traceback
+import urllib.request
+import urllib.parse
+import urllib.error
+import ssl
 from decimal import Decimal
 
-# Bootstrap Django environment
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SHOP_DIR = os.path.join(BASE_DIR, 'shop')
-if SHOP_DIR not in sys.path:
-    sys.path.insert(0, SHOP_DIR)
+DIG_API_URL = os.environ.get('DIG_API_URL', 'https://dig-shop.duckdns.org').rstrip('/')
+DIG_API_TOKEN = os.environ.get('DIG_API_TOKEN', '')
+USE_REMOTE = bool(DIG_API_TOKEN) or os.environ.get('DIG_USE_REMOTE') == '1'
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'shop_project.settings')
+DJANGO_AVAILABLE = False
+if not USE_REMOTE:
+    BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    SHOP_DIR = os.path.join(BASE_DIR, 'shop')
+    if SHOP_DIR not in sys.path:
+        sys.path.insert(0, SHOP_DIR)
 
-try:
-    import django
-    django.setup()
-    from products.models import Product, Category, SubCategory
-    from django.db.models import Q
-except Exception as e:
-    sys.stderr.write(f"Failed to bootstrap Django: {e}\n{traceback.format_exc()}\n")
-    sys.exit(1)
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'shop_project.settings')
+
+    try:
+        import django
+        django.setup()
+        from products.models import Product, Category, SubCategory
+        from django.db.models import Q
+        DJANGO_AVAILABLE = True
+    except Exception as e:
+        sys.stderr.write(f"Django local environment not loaded, using remote mode: {e}\n")
+        USE_REMOTE = True
+
+
+def http_api_call(method, endpoint, data=None, params=None):
+    """Execute authenticated HTTP call against the DIG store REST API."""
+    url = f"{DIG_API_URL}{endpoint}"
+    if params:
+        query_parts = []
+        for k, v in params.items():
+            if v is not None and v != "":
+                if isinstance(v, bool):
+                    query_parts.append(f"{k}={'true' if v else 'false'}")
+                else:
+                    query_parts.append(f"{k}={urllib.parse.quote(str(v))}")
+        if query_parts:
+            url = f"{url}?{'&'.join(query_parts)}"
+
+    headers = {
+        "Accept": "application/json",
+        "User-Agent": "DIG-MCP-Agent/1.0"
+    }
+    if DIG_API_TOKEN:
+        headers["Authorization"] = f"Token {DIG_API_TOKEN}"
+
+    req_body = None
+    if data is not None:
+        req_body = json.dumps(data).encode('utf-8')
+        headers["Content-Type"] = "application/json"
+
+    req = urllib.request.Request(url, data=req_body, headers=headers, method=method)
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
+    try:
+        with urllib.request.urlopen(req, context=ctx, timeout=30) as resp:
+            body = resp.read().decode('utf-8')
+            if not body:
+                return {}
+            return json.loads(body)
+    except urllib.error.HTTPError as e:
+        err_body = e.read().decode('utf-8')
+        raise RuntimeError(f"HTTP {e.code}: {err_body}")
+    except Exception as e:
+        raise RuntimeError(f"Request to {url} failed: {str(e)}")
 
 
 # Tool Definitions
@@ -188,8 +245,23 @@ def serialize_product(product):
 
 
 def handle_view_products(args):
+    if USE_REMOTE:
+        params = {
+            "search": args.get("search"),
+            "category": args.get("category_id"),
+            "featured": args.get("featured_only"),
+        }
+        res = http_api_call("GET", "/api/products/", params=params)
+        products = res.get("results", res) if isinstance(res, dict) else res
+        if not isinstance(products, list):
+            products = []
+        return {
+            "count": len(products),
+            "total_matching": res.get("count", len(products)) if isinstance(res, dict) else len(products),
+            "products": products
+        }
+
     qs = Product.objects.select_related('category', 'sub_category').all()
-    
     is_active = args.get("is_active", True)
     if is_active is not None:
         qs = qs.filter(is_active=is_active)
@@ -228,7 +300,10 @@ def handle_get_product(args):
     product_id = args.get("product_id")
     if not product_id:
         raise ValueError("Missing required argument: 'product_id'")
-        
+
+    if USE_REMOTE:
+        return http_api_call("GET", f"/api/products/{product_id}/")
+
     try:
         product = Product.objects.select_related('category', 'sub_category').get(id=product_id)
         return serialize_product(product)
@@ -247,13 +322,63 @@ def handle_add_product(args):
         raise ValueError("Product 'price' is required.")
     
     try:
-        price_decimal = Decimal(str(price))
-        if price_decimal <= 0:
+        price_float = float(price)
+        if price_float <= 0:
             raise ValueError()
     except Exception:
         raise ValueError(f"Invalid price value '{price}'. Must be a positive number.")
 
-    # Determine Category
+    if USE_REMOTE:
+        cat_id = args.get("category_id")
+        if not cat_id and args.get("category_name"):
+            cats = http_api_call("GET", "/api/categories/")
+            cat_name = args.get("category_name").strip().lower()
+            if isinstance(cats, list):
+                for c in cats:
+                    if c.get("name", "").strip().lower() == cat_name:
+                        cat_id = c.get("id")
+                        break
+            if not cat_id:
+                try:
+                    new_cat = http_api_call("POST", "/api/categories/", data={
+                        "name": args.get("category_name").strip(),
+                        "description": f"קולקציית {args.get('category_name').strip()}"
+                    })
+                    cat_id = new_cat.get("id")
+                except Exception:
+                    pass
+
+        if not cat_id:
+            cats = http_api_call("GET", "/api/categories/")
+            if isinstance(cats, list) and len(cats) > 0:
+                cat_id = cats[0].get("id")
+
+        image_filename = args.get("image_filename")
+        if image_filename:
+            image_filename = os.path.basename(image_filename)
+        else:
+            image_filename = "dig_groom_vip_box.jpg"
+
+        payload = {
+            "name": name.strip(),
+            "description": description.strip(),
+            "price": price_float,
+            "category": cat_id,
+            "image": image_filename,
+            "featured": bool(args.get("featured", False)),
+            "show_in_gallery": bool(args.get("show_in_gallery", True)),
+            "is_active": bool(args.get("is_active", True)),
+            "sku": args.get("sku") or None
+        }
+        res = http_api_call("POST", "/api/products/", data=payload)
+        return {
+            "success": True,
+            "message": f"Product '{res.get('name', name)}' (ID: {res.get('id')}) added successfully.",
+            "product": res
+        }
+
+    # Django ORM mode
+    price_decimal = Decimal(str(price))
     category = None
     category_id = args.get("category_id")
     category_name = args.get("category_name")
@@ -273,7 +398,6 @@ def handle_add_product(args):
         if not category:
             category = Category.objects.create(name="קולקציית DIG", description="מוצרי יוקרה")
 
-    # Determine SubCategory
     sub_category = None
     sub_category_name = args.get("sub_category_name")
     if sub_category_name and sub_category_name.strip():
@@ -283,16 +407,13 @@ def handle_add_product(args):
             defaults={"description": f"{sub_category_name.strip()}"}
         )
 
-    # Determine Image
     image_filename = args.get("image_filename")
     if image_filename:
-        # Standardize relative path inside upload_to
         clean_name = os.path.basename(image_filename)
         image_path = f"products/{clean_name}"
     else:
         image_path = "products/dig_groom_vip_box.jpg"
 
-    # SKU
     sku = args.get("sku")
     if not sku:
         import random
@@ -323,7 +444,22 @@ def handle_delete_product(args):
     product_id = args.get("product_id")
     if not product_id:
         raise ValueError("Missing required argument: 'product_id'")
-        
+
+    if USE_REMOTE:
+        deleted_info = {"id": product_id}
+        try:
+            prod = http_api_call("GET", f"/api/products/{product_id}/")
+            if prod and isinstance(prod, dict):
+                deleted_info = prod
+        except Exception:
+            pass
+        http_api_call("DELETE", f"/api/products/{product_id}/")
+        return {
+            "success": True,
+            "message": f"Product (ID: {product_id}) was successfully deleted.",
+            "deleted_product": deleted_info
+        }
+
     try:
         product = Product.objects.get(id=product_id)
         deleted_info = {
@@ -343,6 +479,10 @@ def handle_delete_product(args):
 
 
 def handle_list_categories(args):
+    if USE_REMOTE:
+        cats = http_api_call("GET", "/api/categories/")
+        return {"categories": cats if isinstance(cats, list) else []}
+
     cats = Category.objects.prefetch_related('sub_categories').all()
     data = []
     for c in cats:
@@ -394,11 +534,9 @@ def main():
         method = req.get("method")
         params = req.get("params", {})
 
-        # Handle notifications (no id)
         if req_id is None and method == "notifications/initialized":
             continue
 
-        # Handle requests
         if method == "initialize":
             send_response({
                 "jsonrpc": "2.0",

@@ -1,5 +1,5 @@
-from django.shortcuts import render
-from rest_framework import generics
+from rest_framework import generics, permissions
+from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -10,15 +10,25 @@ from .serializers import ProductSerializer, CategorySerializer, SubCategorySeria
 
 # Create your views here.
 
-class CategoryListAPIView(generics.ListAPIView):
+class CategoryListAPIView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     pagination_class = None  # Disable pagination for categories
 
-class SubCategoryListAPIView(generics.ListAPIView):
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAdminUser()]
+        return [AllowAny()]
+
+class SubCategoryListAPIView(generics.ListCreateAPIView):
     serializer_class = SubCategorySerializer
     pagination_class = None  # Disable pagination for subcategories
     
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAdminUser()]
+        return [AllowAny()]
+
     def get_queryset(self):
         queryset = SubCategory.objects.all()
         category = self.request.query_params.get('category', None)
@@ -28,8 +38,13 @@ class SubCategoryListAPIView(generics.ListAPIView):
         
         return queryset.order_by('category', 'name')
 
-class ProductListAPIView(generics.ListAPIView):
+class ProductListAPIView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAdminUser()]
+        return [AllowAny()]
     
     def get_queryset(self):
         queryset = Product.objects.filter(is_active=True)
@@ -71,9 +86,14 @@ class GalleryProductListAPIView(generics.ListAPIView):
             show_in_gallery=True
         ).order_by('-created_at')
 
-class ProductDetailAPIView(generics.RetrieveAPIView):
-    queryset = Product.objects.filter(is_active=True)
+class ProductDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Product.objects.all()
     serializer_class = ProductSerializer
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DELETE']:
+            return [IsAdminUser()]
+        return [AllowAny()]
 
 
 class ShopBootstrapAPIView(generics.GenericAPIView):
