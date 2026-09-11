@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  app:
+    build:
+      args:
+        - NODE_ENV=development
+    environment:
+      - NODE_ENV=development
+  shop:
+    environment:
+      - DEBUG=True
+      - DOCKER_ENV=True
+  caddy:
+    volumes:
+      - ./Caddyfile.local:/etc/caddy/Caddyfile
+    ports:
+      - "80:80"
+      - "443:443"
+  backup:
+    profiles:
+      - never-run-locally

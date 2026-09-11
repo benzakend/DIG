@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "dig-products": {
+      "command": "/Users/danielbenzaken/workspace/DIG/shop/shop/.venv/bin/python",
+      "args": [
+        "/Users/danielbenzaken/workspace/DIG/shop/scripts/dig_products_mcp.py"
+      ],
+      "env": {
+        "PYTHONUNBUFFERED": "1"
+      }
+    }
+  }
+}

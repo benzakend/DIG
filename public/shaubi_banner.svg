@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient: Deep Sapphire Navy blending into Rich Emerald and Bordeaux -->
+    <linearGradient id="bannerBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#071224"/>
+      <stop offset="35%" stop-color="#0a2540"/>
+      <stop offset="65%" stop-color="#064e3b"/>
+      <stop offset="100%" stop-color="#4a044e"/>
+    </linearGradient>
+
+    <!-- Metallic Luxury Gold Gradient -->
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fceda4"/>
+      <stop offset="30%" stop-color="#d4af37"/>
+      <stop offset="70%" stop-color="#aa7c11"/>
+      <stop offset="100%" stop-color="#fdf4c9"/>
+    </linearGradient>
+
+    <!-- Emerald Gem Gradient -->
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+
+    <!-- Bordeaux Glow -->
+    <radialGradient id="rubyGlow" cx="85%" cy="30%" r="50%">
+      <stop offset="0%" stop-color="#c026d3" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#4a044e" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Sapphire Glow -->
+    <radialGradient id="sapphireGlow" cx="15%" cy="70%" r="50%">
+      <stop offset="0%" stop-color="#0284c7" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#071224" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Base Canvas -->
+  <rect width="1200" height="420" rx="16" fill="url(#bannerBg)"/>
+  <rect width="1200" height="420" rx="16" fill="url(#rubyGlow)"/>
+  <rect width="1200" height="420" rx="16" fill="url(#sapphireGlow)"/>
+
+  <!-- Luxury Art Deco Border Frame -->
+  <rect x="20" y="20" width="1160" height="380" rx="12" fill="none" stroke="url(#gold)" stroke-width="2" opacity="0.65"/>
+  <rect x="28" y="28" width="1144" height="364" rx="8" fill="none" stroke="url(#gold)" stroke-width="1" stroke-dasharray="8 6" opacity="0.4"/>
+
+  <!-- Corner Deco Accents -->
+  <path d="M 24 60 L 60 24 M 24 75 L 75 24 M 1176 60 L 1140 24 M 1176 75 L 1125 24 M 24 360 L 60 396 M 24 345 L 75 396 M 1176 360 L 1140 396 M 1176 345 L 1125 396" stroke="url(#gold)" stroke-width="1.5" opacity="0.7"/>
+
+  <!-- Decorative Bowtie Silhouette (Party & Wedding Motif) -->
+  <g transform="translate(600, 75) scale(0.9)" filter="url(#glow)">
+    <polygon points="-45,-20 -5,0 -45,20" fill="url(#gold)"/>
+    <polygon points="45,-20 5,0 45,20" fill="url(#gold)"/>
+    <circle cx="0" cy="0" r="8" fill="url(#gold)"/>
+  </g>
+
+  <!-- Brand Title: DIG -->
+  <text x="600" y="180" font-family="'Cinzel', 'Playfair Display', Georgia, serif" font-size="94" font-weight="900" fill="url(#gold)" text-anchor="middle" letter-spacing="18" filter="url(#glow)">DIG</text>
+  
+  <!-- English Tagline -->
+  <text x="600" y="225" font-family="'Montserrat', 'Heebo', sans-serif" font-size="16" font-weight="700" fill="#fceda4" text-anchor="middle" letter-spacing="8" opacity="0.95">HAUTE MEN'S ACCESSORIES • WEDDINGS &amp; CELEBRATIONS</text>
+
+  <!-- Hebrew Tagline -->
+  <text x="600" y="275" font-family="'Heebo', sans-serif" font-size="28" font-weight="800" fill="#ffffff" text-anchor="middle" letter-spacing="1">אקססוריז יוקרתיים לגבר • חתונות, אירועים ומסיבות</text>
+
+  <!-- Sub-highlights: Pure Silk, 18K Gold, Velvet, Custom Styling -->
+  <g transform="translate(600, 340)" font-family="'Heebo', sans-serif" font-size="15" font-weight="600" text-anchor="middle">
+    <!-- Badge 1: Weddings -->
+    <rect x="-380" y="-20" width="160" height="34" rx="17" fill="#047857" fill-opacity="0.35" stroke="url(#gold)" stroke-width="1.2"/>
+    <text x="-300" y="3" fill="#fceda4">✦ קולקציית חתן VIP</text>
+
+    <!-- Badge 2: Parties -->
+    <rect x="-190" y="-20" width="170" height="34" rx="17" fill="#4a044e" fill-opacity="0.45" stroke="url(#gold)" stroke-width="1.2"/>
+    <text x="-105" y="3" fill="#fceda4">✦ פפיונים ומסיבות</text>
+
+    <!-- Badge 3: 100% Pure Silk -->
+    <rect x="10" y="-20" width="170" height="34" rx="17" fill="#0a2540" fill-opacity="0.55" stroke="url(#gold)" stroke-width="1.2"/>
+    <text x="95" y="3" fill="#fceda4">✦ 100% משי איטלקי</text>
+
+    <!-- Badge 4: Groomsmen -->
+    <rect x="200" y="-20" width="180" height="34" rx="17" fill="#064e3b" fill-opacity="0.35" stroke="url(#gold)" stroke-width="1.2"/>
+    <text x="290" y="3" fill="#fceda4">✦ חבילות שושבינים</text>
+  </g>
+</svg>

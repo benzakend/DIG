@@ -1,0 +1,130 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shaubi-app
+    restart: always
+    expose:
+      - 80
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: shaubi-api
+    restart: always
+    environment:
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASS=${MAIL_PASS}
+      - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - PORT=${API_PORT:-3001}
+    expose:
+      - 3001
+
+  shop:
+    build:
+      context: ./shop
+      dockerfile: Dockerfile
+    container_name: shaubi-shop
+    restart: always
+    environment:
+      - DEBUG=False
+      - DOCKER_ENV=True
+      - POSTGRES_DB=${POSTGRES_DB:-shaubi}
+      - POSTGRES_USER=${POSTGRES_USER:-shaubi}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+    volumes:
+      - shop_media:/tmp/media
+    expose:
+      - 8000
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+
+  db:
+    image: postgres:16-alpine
+    container_name: shaubi-postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-shaubi}
+      - POSTGRES_USER=${POSTGRES_USER:-shaubi}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    expose:
+      - 5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: shaubi-pgadmin
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL:-admin@example.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - db
+
+  backup:
+    image: postgres:16-alpine
+    container_name: shaubi-backup
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-shaubi}
+      - POSTGRES_USER=${POSTGRES_USER:-shaubi}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+      - S3_BUCKET=${S3_BUCKET:-shaubi-lending-database-bk}
+    volumes:
+      - ./scripts:/scripts
+      - backup_data:/backups
+      - shop_media:/tmp/media
+      - /home/ubuntu/.aws:/root/.aws:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "apk add --no-cache aws-cli && chmod +x /scripts/backup.sh && /scripts/backup.sh"
+    profiles:
+      - backup
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+      - shop_media:/tmp/media
+    depends_on:
+      - app
+      - api
+      - shop
+
+volumes:
+  caddy_data:
+  caddy_config:
+  shop_media: 
+  db_data:
+  pgadmin_data:
+  backup_data:
+

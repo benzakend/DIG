@@ -1,0 +1,35 @@
+shaubi-brothers.co.il {
+    handle /api/contact* {
+        reverse_proxy api:3001
+    }
+    handle /api/products* {
+        reverse_proxy shop:8000
+    }
+    handle /api/categories* {
+        reverse_proxy shop:8000
+    }
+    handle /api/subcategories* {
+        reverse_proxy shop:8000
+    }
+    handle /api/cart* {
+        reverse_proxy shop:8000
+    }
+    handle /api/orders* {
+        reverse_proxy shop:8000
+    }
+    handle /api/shipping* {
+        reverse_proxy shop:8000
+    }
+    handle /media* {
+        reverse_proxy shop:8000
+    }
+    handle /static* {
+        reverse_proxy shop:8000
+    }
+    handle /admin* {
+        reverse_proxy shop:8000
+    }
+    handle /* {
+        reverse_proxy app:80
+    }
+} 

@@ -1,0 +1,14 @@
+{
+  "name": "shaubi-api",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "contact.js",
+  "scripts": {
+    "start": "node contact.js",
+    "dev": "node contact.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "nodemailer": "^6.9.13"
+  }
+} 

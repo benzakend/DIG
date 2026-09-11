@@ -1,0 +1,57 @@
+# robots.txt for shaubi-brothers.co.il
+# Optimized for Hebrew SEO and AEO
+
+User-agent: *
+Allow: /
+
+# Disallow admin and backend paths
+Disallow: /api/admin/
+Disallow: /admin/
+Disallow: /private/
+
+# Allow search engines to crawl all content
+Allow: /shop
+Allow: /product/
+Allow: /
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.png$
+Allow: /*.gif$
+Allow: /*.webp$
+
+# Sitemap location
+Sitemap: https://shaubi-brothers.co.il/sitemap.xml
+
+# Crawl-delay (optional, helps with server load)
+Crawl-delay: 1
+
+# User-agent specific rules
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Allow AI/ML crawlers for AEO (Answer Engine Optimization)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+# Google's AI crawler
+User-agent: Google-Extended
+Allow: /
+
