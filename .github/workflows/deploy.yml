@@ -26,6 +26,5 @@ jobs:
             cd /home/ubuntu/DIG
             git fetch origin main
             git reset --hard origin/main
-            docker compose down --remove-orphans || true
-            docker compose up -d --build
+            docker compose up -d --build --remove-orphans
             echo "✅ Deployment completed successfully!"
